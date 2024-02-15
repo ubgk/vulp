@@ -50,7 +50,8 @@ class BulletInterface : public Interface {
       const auto& bullet = config("bullet");
       follower_camera = bullet.get<bool>("follower_camera", follower_camera);
       gui = bullet.get<bool>("gui", gui);
-
+      server = bullet.get<bool>("server", server);
+      
       joint_friction.clear();
       if (bullet.has("joint_properties")) {
         for (const auto& joint : bullet("joint_properties").keys()) {
@@ -106,7 +107,10 @@ class BulletInterface : public Interface {
     //! If true, fire up the graphical user interface.
     bool gui = false;
 
-    /*! Path to the URDF model of the robot.
+    //! If true, fire up a server 
+    bool server = false;
+
+   /*! Path to the URDF model of the robot.
      *
      * A path from the root of the Bazel workspace works. For instance, use
      * "models/upkie_description/urdf/upkie.urdf" to load the URDF from Bazel

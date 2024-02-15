@@ -4,6 +4,7 @@
 #include "vulp/actuation/BulletInterface.h"
 
 #include <algorithm>
+#include <iostream>
 #include <memory>
 #include <string>
 
@@ -27,8 +28,27 @@ std::string find_plane_urdf(const std::string argv0) {
 BulletInterface::BulletInterface(const ServoLayout& layout,
                                  const Parameters& params)
     : Interface(layout), params_(params) {
+
   // Start simulator
-  auto flag = (params.gui ? eCONNECT_GUI : eCONNECT_DIRECT);
+  eCONNECT_METHOD flag;
+  if (params.gui){
+    if (params.server){
+        std::cout << "Creating GUI server..." << "\n";
+        flag = eCONNECT_GUI_SERVER;
+    } else {
+        std::cout << "Connecting to GUI" << "\n";
+        flag = eCONNECT_GUI;
+    }
+  } else {
+    if (params.server){
+        std::cout << "Creating memory server" << "\n";
+        flag = eCONNECT_SHARED_MEMORY_SERVER;
+    } else {
+        std::cout << "Connecting direct" << "\n";
+        flag = eCONNECT_DIRECT;
+    }
+  }
+
   bool is_connected = bullet_.connect(flag);
   if (!is_connected) {
     throw std::runtime_error("Could not connect to the Bullet GUI");

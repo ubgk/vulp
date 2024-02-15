@@ -145,4 +145,14 @@ cc_library(
     include_prefix = "vulp/actuation",
 )
 
+cc_binary(
+    name = "simlaunch",
+    srcs = [
+        "SimLaunch.cpp"
+    ],
+   deps = [
+        ":bullet_interface"
+    ]
+)
+
 add_lint_tests()
