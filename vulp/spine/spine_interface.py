@@ -30,6 +30,7 @@ def wait_for_shared_memory(
     @param shm_name Name of the shared memory object.
     @param retries Number of times to try opening the shared-memory file.
     """
+    print(f"Waiting for spine {shm_name} to start...")
     for trial in range(retries):
         if trial > 0:
             logging.info(
