@@ -74,6 +74,10 @@ AgentInterface::AgentInterface(const std::string& name, size_t size)
   mmap_request_ = static_cast<uint32_t*>(mmap_);
   mmap_size_ = static_cast<uint32_t*>(mmap_request_ + 1);
   mmap_data_ = reinterpret_cast<char*>(mmap_size_ + 1);
+
+  // Log success
+  spdlog::info("Agent interface \"{}\" created at address {}", name,
+               static_cast<void*>(mmap_));
 }
 
 AgentInterface::~AgentInterface() {
