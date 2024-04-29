@@ -31,6 +31,9 @@ void allocate_file(int file_descriptor, int bytes) {
 
 AgentInterface::AgentInterface(const std::string& name, size_t size)
     : name_(name), size_(size) {
+  // Print information
+  spdlog::info("Creating agent interface \"{}\" with size {} bytes", name,
+               size);
   // Allocate shared memory
   // About umask: see https://stackoverflow.com/a/11909753
   mode_t existing_umask = ::umask(0);
