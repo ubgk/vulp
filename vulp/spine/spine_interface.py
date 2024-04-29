@@ -47,6 +47,7 @@ def wait_for_shared_memory(
             resource_tracker.unregister(shared_memory._name, "shared_memory")
             return shared_memory
         except FileNotFoundError:
+            print(f"FileNotFoundError: {shm_name}")
             pass
     raise SpineError(
         f"spine {shm_name} did not respond after {retries} attempts"
