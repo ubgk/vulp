@@ -3,16 +3,17 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2022 Stéphane Caron
+# Copyright 2024 Inria
 
 import logging
 import mmap
 import sys
 import time
+from multiprocessing import resource_tracker
+from multiprocessing.shared_memory import SharedMemory
 from time import perf_counter_ns
-from typing import Optional
 
 import msgpack
-import posix_ipc
 
 from vulp.utils import serialize
 
@@ -23,12 +24,14 @@ from .request import Request
 def wait_for_shared_memory(
     shm_name: str,
     retries: int,
-) -> Optional[posix_ipc.SharedMemory]:
+) -> SharedMemory:
     """!
     Connect to the spine shared memory.
 
     @param shm_name Name of the shared memory object.
     @param retries Number of times to try opening the shared-memory file.
+    @raise SpineError If the spine did not respond after the prescribed number
+        of trials.
     """
     print(f"Waiting for spine {shm_name} to start...")
     for trial in range(retries):
@@ -39,10 +42,17 @@ def wait_for_shared_memory(
             )
             time.sleep(1.0)
         try:
-            return posix_ipc.SharedMemory(shm_name, size=0, read_only=False)
-        except posix_ipc.ExistentialError:
+            shared_memory = SharedMemory(shm_name, size=0, create=False)
+            # Why we unregister: https://github.com/upkie/vulp/issues/88
+            # Upstream issue: https://github.com/python/cpython/issues/82300
+            resource_tracker.unregister(shared_memory._name, "shared_memory")
+            return shared_memory
+        except FileNotFoundError:
+            print(f"FileNotFoundError: {shm_name}")
             pass
-    return None
+    raise SpineError(
+        f"spine {shm_name} did not respond after {retries} attempts"
+    )
 
 
 class SpineInterface:
@@ -67,26 +77,11 @@ class SpineInterface:
         @param perf_checks If true, run performance checks after construction.
         """
         shared_memory = wait_for_shared_memory(shm_name, retries)
-        if shared_memory is None:
-            raise RuntimeError(
-                f"spine {shm_name} did not respond after {retries} attempts"
-            )
-        try:
-            _mmap = mmap.mmap(
-                shared_memory.fd,
-                shared_memory.size,
-                flags=mmap.MAP_SHARED,
-                prot=mmap.PROT_READ | mmap.PROT_WRITE,
-            )
-        except ValueError as exn:
-            if "empty file" in str(exn):
-                raise RuntimeError("spine is not running") from exn
-            raise exn
-        shared_memory.close_fd()
-        self._mmap = _mmap
+        self._mmap = shared_memory._mmap
         self._packer = msgpack.Packer(default=serialize, use_bin_type=True)
-        self._unpacker = msgpack.Unpacker(raw=False)
+        self._shared_memory = shared_memory
         self._stop_waiting = set([Request.kNone, Request.kError])
+        self._unpacker = msgpack.Unpacker(raw=False)
         if perf_checks:
             self.__perf_checks()
 
@@ -104,8 +99,8 @@ class SpineInterface:
         Note that the spine process will unlink the shared memory object, so we
         don't unlink it here.
         """
-        if hasattr(self, "_mmap"):  # handle ctor exceptions
-            self._mmap.close()
+        if hasattr(self, "_shared_memory"):  # handle ctor exceptions
+            self._shared_memory.close()
 
     def get_observation(self) -> dict:
         """!
@@ -188,6 +183,7 @@ class SpineInterface:
 
         @param timeout_ns Don't wait for more than this duration in
             nanoseconds.
+        @raise SpineError If the request read from spine has an error flag.
         """
         stop = perf_counter_ns() + timeout_ns
         while self._read_request() not in self._stop_waiting:  # sets are fast
