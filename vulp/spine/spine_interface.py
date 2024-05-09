@@ -178,7 +178,7 @@ class SpineInterface:
         assert unpacked == 1
         return last_dict
 
-    def _wait_for_spine(self, timeout_ns: int = 100000000) -> None:
+    def _wait_for_spine(self, timeout_ns: int = 1000000000) -> None:
         """!
         Wait for the spine to signal itself as available, which it does by
         setting the current request to none in shared memory.
