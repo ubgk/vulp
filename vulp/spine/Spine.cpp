@@ -70,6 +70,8 @@ void Spine::log_working_dict() {
       static_cast<uint32_t>(state_cycle_beginning_);
   spine("state")("cycle_end") = static_cast<uint32_t>(state_cycle_end_);
 
+  std::cout << "MY WORKING DICT IS THIS: " << working_dict_ << std::endl;
+
   // logger_.put(working_dict_);
 
   // Log configuration dictionary at most once (at reset)
