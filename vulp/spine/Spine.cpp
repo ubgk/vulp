@@ -7,6 +7,7 @@
  *     SPDX-License-Identifier: Apache-2.0
  *     Copyright 2020 Josh Pieper, jjp@pobox.com.
  */
+#include <iostream>
 
 #include "vulp/spine/Spine.h"
 
