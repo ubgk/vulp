@@ -68,8 +68,8 @@ void Spine::log_working_dict() {
   Dictionary& spine = working_dict_("spine");
   spine("logger")("last_size") = logger_.last_size();
   // Print the type of logger_.last_size() to the console
-  std::cout << "The type of logger_.last_size() is: " << typeid(logger_.last_size()).name() << std::endl;
-  
+  std::cout << "The type of logger_.last_size() is: " << typeid(size_t).name() << std::endl;
+
   spine("state")("cycle_beginning") =
       static_cast<uint32_t>(state_cycle_beginning_);
   spine("state")("cycle_end") = static_cast<uint32_t>(state_cycle_end_);
