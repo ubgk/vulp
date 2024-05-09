@@ -72,7 +72,7 @@ void Spine::log_working_dict() {
 
   std::cout << "MY WORKING DICT IS THIS: " << working_dict_ << std::endl;
 
-  // logger_.put(working_dict_);
+  logger_.put(working_dict_);
 
   // Log configuration dictionary at most once (at reset)
   if (working_dict_.has("config")) {
