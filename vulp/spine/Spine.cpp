@@ -69,7 +69,8 @@ void Spine::log_working_dict() {
   spine("state")("cycle_beginning") =
       static_cast<uint32_t>(state_cycle_beginning_);
   spine("state")("cycle_end") = static_cast<uint32_t>(state_cycle_end_);
-  logger_.put(working_dict_);
+
+  // logger_.put(working_dict_);
 
   // Log configuration dictionary at most once (at reset)
   if (working_dict_.has("config")) {
